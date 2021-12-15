@@ -1,0 +1,6 @@
+fastapi-service:
+    build:
+      context: .
+    image: sample-fastapi-app
+    ports:
+      - "5000:5000"
