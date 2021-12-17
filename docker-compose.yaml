@@ -3,4 +3,4 @@ fastapi-service:
       context: .
     image: sample-fastapi-app
     ports:
-      - "5000:5000"
+      - "5002:5002"

@@ -18,7 +18,7 @@ opentelemetry-bootstrap --action=install
 ```
 
 ```
-OTEL_RESOURCE_ATTRIBUTES=service.name=pythonApp OTEL_EXPORTER_OTLP_ENDPOINT="http://<IP of SigNoz>:4317" opentelemetry-instrument uvicorn main:app
+OTEL_RESOURCE_ATTRIBUTES=service.name=pythonApp OTEL_EXPORTER_OTLP_ENDPOINT="http://<IP of SigNoz>:4317" opentelemetry-instrument uvicorn main:app --host localhost --port 5002
 ```
 
 For example:
@@ -41,7 +41,7 @@ docker run -d --name fastapi-container \
 -e OTEL_METRICS_EXPORTER='none' \
 -e OTEL_RESOURCE_ATTRIBUTES='service.name=fastapiApp' \
 -e OTEL_EXPORTER_OTLP_ENDPOINT='http://<IP of SigNoz>:4317' \
--p 5000:5000 sample-fastapi-app
+-p 5002:5002 sample-fastapi-app
 
 
 # If you are running signoz through official docker-compose setup, run `docker network ls` and find clickhouse network id. It will be something like this clickhouse-setup_default 
@@ -53,7 +53,7 @@ docker run -d --name fastapi-container \
 -e OTEL_METRICS_EXPORTER='none' \
 -e OTEL_RESOURCE_ATTRIBUTES='service.name=fastapiApp' \
 -e OTEL_EXPORTER_OTLP_ENDPOINT='http://clickhouse-setup_otel-collector_1:4317' \
--p 5000:5000 sample-fastapi-app
+-p 5002:5002 sample-fastapi-app
 
 ```
 
@@ -64,7 +64,7 @@ pip3 install locust
 ```
 
 ```
-locust -f locust.py --headless --users 10 --spawn-rate 1 -H http://localhost:5000
+locust -f locust.py --headless --users 10 --spawn-rate 1 -H http://localhost:5003
 ```
 
 
