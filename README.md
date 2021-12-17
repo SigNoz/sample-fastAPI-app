@@ -69,6 +69,8 @@ locust -f locust.py --headless --users 10 --spawn-rate 1 -H http://localhost:500
 
 
 ## Trobleshooting
+Don't run app in reloader mode as it breaks instrumentation.
+
 If you face any problem in instrumenting with OpenTelemetry, refer to docs at 
 https://signoz.io/docs/instrumentation/python
 
