@@ -3,6 +3,16 @@ from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 import requests
 import random
+
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import (BatchSpanProcessor,
+                                            ConsoleSpanExporter,
+                                            SimpleSpanProcessor)
+
+tracer = TracerProvider()
+
+
+
 random.seed(54321)
 
 
@@ -41,4 +51,12 @@ def external_api():
     return "ok"
 
 
-FastAPIInstrumentor.instrument_app(app, excluded_urls="ping")
+@app.on_event("startup")
+def startup_event():
+
+    tracer.add_span_processor(
+        SimpleSpanProcessor(ConsoleSpanExporter())
+    )
+
+
+FastAPIInstrumentor.instrument_app(app, tracer_provider=tracer, excluded_urls="ping")
