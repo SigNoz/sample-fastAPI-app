@@ -1,14 +1,12 @@
 import asyncio
-from fastapi import FastAPI
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-import requests
 import random
 
-from opentelemetry.sdk.trace import TracerProvider
-
-tracer = TracerProvider()
+import requests
+from fastapi import FastAPI
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 random.seed(54321)
+FastAPIInstrumentor().instrument(excluded_urls="ping")
 
 
 app = FastAPI()
@@ -44,6 +42,3 @@ def external_api():
     response = requests.get(f"https://httpbin.org/delay/{seconds}")
     response.close()
     return "ok"
-
-
-FastAPIInstrumentor.instrument_app(app, tracer_provider=tracer, excluded_urls="ping")
