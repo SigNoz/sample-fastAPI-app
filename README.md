@@ -24,7 +24,7 @@ OTEL_RESOURCE_ATTRIBUTES=service.name=fastapiApp OTEL_EXPORTER_OTLP_ENDPOINT="ht
 For example:
 `<IP of SigNoz>` will be `localhost` if you are running SigNoz in your localhost. For other installations you can use the same IP where SigNoz is accessible.
 
-Our web server is running in the port 5002 by default. Browse `http://localhost:5002` to send requests to this flask server and check the metrics and trace data at `http://<IP of SigNoz>:3000`
+Our web server is running in the port 5002 by default. Browse `http://localhost:5002` to send requests to this FastAPI server and check the metrics and trace data at `http://<IP of SigNoz>:3301`
 
 
 ## Run with docker
@@ -38,7 +38,6 @@ Run fast api app
 # If you have your SigNoz IP Address, replace <IP of SigNoz> with your IP Address. 
 
 docker run -d --name fastapi-container \
--e OTEL_METRICS_EXPORTER='none' \
 -e OTEL_RESOURCE_ATTRIBUTES='service.name=fastapiApp' \
 -e OTEL_EXPORTER_OTLP_ENDPOINT='http://<IP of SigNoz>:4317' \
 -p 5002:5002 sample-fastapi-app
@@ -50,7 +49,6 @@ docker run -d --name fastapi-container \
 docker run -d --name fastapi-container \ 
 --net clickhouse-setup_default  \ 
 --link clickhouse-setup_otel-collector_1 \
--e OTEL_METRICS_EXPORTER='none' \
 -e OTEL_RESOURCE_ATTRIBUTES='service.name=fastapiApp' \
 -e OTEL_EXPORTER_OTLP_ENDPOINT='http://clickhouse-setup_otel-collector_1:4317' \
 -p 5002:5002 sample-fastapi-app
