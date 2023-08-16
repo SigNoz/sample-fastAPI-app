@@ -1,7 +1,7 @@
-fastapi==0.68.1
+fastapi==0.58.1
 python-dotenv==0.19.0
 uvicorn==0.15.0
-requests
-opentelemetry-distro==0.39b0
-opentelemetry-exporter-otlp==1.18.0
-opentelemetry-instrumentation-fastapi==0.39b0
+requests==2.26.0
+opentelemetry-distro==0.40b0
+opentelemetry-exporter-otlp==1.19.0
+opentelemetry-instrumentation-fastapi==0.40b0
