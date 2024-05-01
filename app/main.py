@@ -1,69 +1,69 @@
-import asyncio
-import logging
-from fastapi import HTTPException, status
-import requests
-import random
+from fastapi import FastAPI, HTTPException, Request
 from opentelemetry import trace
-from opentelemetry.trace.status import Status, StatusCode
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from custom_exporter import FilterErrorEventsSpanProcessor
+import traceback
+from opentelemetry.trace.status import StatusCode
+from fastapi.responses import JSONResponse
 
-import requests
-from fastapi import FastAPI
+# Initialize your tracer provider
+provider = TracerProvider()
 
-random.seed(54321)
+# Set the provider in global configuration
+trace.set_tracer_provider(provider)
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+# Initialize the default exporter
+otlp_exporter = OTLPSpanExporter()
 
+# Add the OTLP exporter to a BatchSpanProcessor
+provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+
+# Add the custom SpanProcessor to the tracer provider
+provider.add_span_processor(FilterErrorEventsSpanProcessor())
+# FastAPI app instance
 app = FastAPI()
 
+# Instrument FastAPI
+FastAPIInstrumentor.instrument_app(app)
 
 @app.get("/")
-async def read_root():
-    return {"Hello": "World"}
+async def root():
+    return {"message": "Hello World"}
 
-
-@app.get("/ping")
-async def health_check():
-    return "pong"
-
-
-@app.get("/items/{item_id}")
-async def read_item(item_id: int, q: str = None):
-    if item_id % 2 == 0:
-        # mock io - wait for x seconds
-        seconds = random.uniform(0, 3)
-        await asyncio.sleep(seconds)
-    return {"item_id": item_id, "q": q}
-
-
-@app.get("/invalid")
-async def invalid():
-    raise ValueError("Invalid ")
-
-@app.get("/exception")
-async def exception():
+@app.get("/error")
+async def error():
     try:
-        raise ValueError("sadness")
-    except Exception as ex:
-        logger.error(ex, exc_info=True)
-        span = trace.get_current_span()
+        raise ValueError("This is an intentional error")
+    except Exception as e:
+        # Get the current span
+        current_span = trace.get_current_span()
+        # Log the exception manually
+        current_span.record_exception(
+            exception=e,
+            attributes={"exception.stacktrace": traceback.format_exc()}
+        )
+        # Set the span status to ERROR
+        current_span.set_status(StatusCode.ERROR, description=str(e))
+        # Return a response without stack trace details
+        return JSONResponse(
+            status_code=500,
+            content={"message": "An internal error occurred"}
+        )
 
-        # generate random number
-        seconds = random.uniform(0, 30)
-
-        # record_exception converts the exception into a span event. 
-        exception = IOError("Failed at " + str(seconds))
-        span.record_exception(exception)
-        span.set_attributes({'est': True})
-        # Update the span status to failed.
-        span.set_status(Status(StatusCode.ERROR, "internal error"))
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Got sadness")
-
-@app.get("/external-api")
-def external_api():
-    seconds = random.uniform(0, 3)
-    response = requests.get(f"https://httpbin.org/delay/{seconds}")
-    response.close()
-    return "ok"
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    response = JSONResponse(
+        status_code=exc.status_code,
+        content={"message": exc.detail},
+    )
+    # Log the HTTP exception similarly if needed
+    current_span = trace.get_current_span()
+    current_span.record_exception(
+        exception=exc,
+        attributes={"http.exception_detail": exc.detail}
+    )
+    current_span.set_status(StatusCode.ERROR, description=exc.detail)
+    return response
