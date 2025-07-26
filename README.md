@@ -85,7 +85,7 @@ pip install locust
 ```
 
 ```
-locust -f locust.py --headless --users 10 --spawn-rate 1 -H http://localhost:5002
+locust -f locustfile.py --headless --users 10 --spawn-rate 1 -H http://localhost:5002
 ```
 
 
